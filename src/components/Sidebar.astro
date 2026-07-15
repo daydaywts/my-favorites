@@ -1,0 +1,112 @@
+---
+import { getLibraryMeta } from '../data/library';
+import { site, nav } from '../data/site';
+import Icon from './Icon.astro';
+import { getCollection } from 'astro:content';
+interface Props { active?: string; }
+const { active = 'home' } = Astro.props;
+const { counts, allTags } = await getLibraryMeta();
+const articles = (await getCollection('articles')).sort((a, b) => b.data.date.localeCompare(a.data.date));
+const showQuote = 'showQuote' in site ? Boolean(site.showQuote) : false;
+const quoteDate = 'quoteDate' in site ? String(site.quoteDate ?? '') : '';
+const sideItems = [
+  { ...nav[0], count: counts.all, icon: 'collection' as const },
+  { ...nav[1], count: counts.movie, icon: 'movie' as const },
+  { ...nav[2], count: counts.manga, icon: 'manga' as const },
+  { ...nav[3], count: counts.game, icon: 'game' as const },
+  { href: 'tags', label: '标签', key: 'tags', count: allTags.length, icon: 'tag' as const },
+  { href: 'about', label: '关于我', key: 'about', count: '', icon: 'atmosphere' as const },
+];
+---
+
+<aside class="sidebar" data-sidebar>
+  <a class="brand" href="./">
+    <strong>{site.title}</strong>
+    <span>{site.subtitle}</span>
+  </a>
+  <button type="button" class="sidebar__close" aria-label="关闭菜单" data-menu-close><Icon name="close" size={22} /></button>
+
+  <nav class="side-nav" aria-label="收藏分类">
+    {sideItems.map((item) => (
+      <a href={item.href} class:list={{ active: active === item.key }}>
+        <span class="side-nav__symbol"><Icon name={item.icon} size={17} /></span>
+        <span>{item.label}</span>
+        <b>{item.count}</b>
+      </a>
+    ))}
+  </nav>
+
+  <section class="sidebar-articles">
+    <p>文章</p>
+    {articles.slice(0, 5).map((article) => <a href={`notes/${article.id}`}>{article.data.title}</a>)}
+    <a class="sidebar-articles__more" href="notes"><b>更多</b><span>→</span></a>
+  </section>
+  <div class="sidebar__bottom">
+    {showQuote && (
+      <blockquote>
+        <Icon name="quote" size={20} />
+        {site.quote}
+        {quoteDate && <footer>{quoteDate}</footer>}
+      </blockquote>
+    )}
+
+    <div class="sidebar__footer">
+      <div class="sidebar__status">
+        <button type="button" aria-label="切换到夜间模式" title="切换到夜间模式" data-theme-toggle>
+          <span class="theme-icons" aria-hidden="true"><Icon name="theme" size={17} /><Icon name="moon" size={17} /></span>
+          <i></i>
+        </button>
+        <span>{site.updatedAt}</span>
+      </div>
+      <small>{site.footer}</small>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-mask" data-menu-close></div>
+
+<style>
+  .sidebar { position: fixed; z-index: 20; left: 0; top: 0; bottom: 0; width: var(--sidebar); border-right: 1px solid var(--line); background: var(--paper); padding: 31px 34px 24px; display: flex; flex-direction: column; overflow-y: auto; }
+  .brand { display: block; color: var(--ink); margin-bottom: 38px; }
+  .brand strong { display: block; font-size: 28px; font-weight: 500; letter-spacing: .05em; }
+  .brand span { color: var(--muted); font-size: 12px; }
+  .sidebar__close { display: none; }
+  .side-nav { display: grid; gap: 3px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+  .side-nav a { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; padding: 12px 10px; border-radius: 4px; color: var(--ink-soft); font-size: 14px; }
+  .side-nav a:hover, .side-nav a.active { background: var(--accent-soft); color: var(--accent-strong); }
+  .side-nav b { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .side-nav__symbol { font-size: 15px; }
+  .sidebar-articles { display: grid; gap: 2px; padding: 16px 0 14px; }
+  .sidebar-articles p { margin: 0 8px 7px; color: var(--ink); font-size: 13px; font-weight: 550; }
+  .sidebar-articles a { display: block; overflow: hidden; padding: 7px 8px; border-radius: 3px; color: var(--muted); font-size: 12.5px; line-height: 1.5; text-overflow: ellipsis; white-space: nowrap; }
+  .sidebar-articles a:hover { background: var(--accent-soft); color: var(--accent-strong); }
+  .sidebar-articles a.active { background: var(--accent-soft); color: var(--ink); }
+  .sidebar-articles__more { display: flex !important; justify-content: space-between; align-items: center; margin-top: 3px; }
+  .sidebar-articles__more b { color: var(--ink-soft); font-weight: 500; }
+  .sidebar__bottom { width: 100%; margin-top: auto; }
+  blockquote { width: 100%; min-width: 0; margin: 0 0 20px; padding: 18px; overflow-wrap: anywhere; border: 1px solid var(--line); border-radius: 6px; background: var(--soft); color: var(--ink-soft); font-size: 12px; line-height: 1.85; }
+  blockquote :global(.site-icon) { margin-bottom: 9px; }
+  blockquote footer { margin-top: 13px; color: var(--muted); font-size: 10px; }
+  .sidebar__footer { flex: 0 0 auto; width: 100%; }
+  .sidebar__status { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; }
+  .sidebar__status > span { color: var(--muted); font-size: 12px; line-height: 1.5; white-space: nowrap; }
+  .sidebar__footer button { display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+  .theme-icons { position: relative; display: block; width: 17px; height: 17px; }
+  .theme-icons :global(.site-icon) { position: absolute; inset: 0; transition: opacity .38s ease, transform .45s cubic-bezier(.22, 1, .36, 1), filter .38s ease; }
+  .theme-icons :global(.site-icon:first-child) { opacity: 1; transform: rotate(0) scale(1); }
+  .theme-icons :global(.site-icon:last-child) { opacity: 0; transform: rotate(-75deg) scale(.62); }
+  :global(html.dark) .theme-icons :global(.site-icon:first-child) { opacity: 0; transform: rotate(75deg) scale(.62); }
+  :global(html.dark) .theme-icons :global(.site-icon:last-child) { opacity: 1; transform: rotate(0) scale(1); }
+  .sidebar__footer i { display: block; width: 41px; height: 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--soft-2); position: relative; transition: background-color .38s ease, border-color .38s ease; }
+  .sidebar__footer i::after { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--paper); box-shadow: 0 1px 4px rgba(0, 0, 0, .16); left: 2px; top: 2px; transition: left .38s cubic-bezier(.22, 1, .36, 1), background-color .38s ease; }
+  :global(html.dark) .sidebar__footer i::after { left: 21px; }
+  .sidebar__footer small { display: block; width: 100%; margin-top: 15px; color: var(--muted); font-size: 12px; line-height: 1.5; text-align: center; white-space: nowrap; }
+  .sidebar-mask { display: none; }
+  @media (max-width: 1100px) { .sidebar { padding-inline: 24px; } }
+  @media (max-width: 820px) {
+    .sidebar { width: min(82vw, 310px); transform: translateX(-105%); transition: transform .25s; box-shadow: 8px 0 30px rgba(0,0,0,.08); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar__close { display: grid; place-items: center; position: absolute; right: 17px; top: 16px; border: 0; background: transparent; padding: 5px; cursor: pointer; color: var(--ink); }
+    .sidebar-mask { position: fixed; z-index: 19; inset: 0; background: rgba(0,0,0,.18); }
+    .sidebar.open + .sidebar-mask { display: block; }
+  }
+</style>

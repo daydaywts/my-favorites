@@ -1,0 +1,111 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { marked } from 'marked';
+import Layout from '../../layouts/Layout.astro';
+import Placeholder from '../../components/Placeholder.astro';
+import { getReleaseYear, toLibraryItem } from '../../data/library';
+
+export async function getStaticPaths() {
+  return (await getCollection('works')).map((entry) => ({ params: { slug: toLibraryItem(entry).slug }, props: { entry } }));
+}
+
+interface Props { entry: CollectionEntry<'works'>; }
+const { entry } = Astro.props;
+const item = toLibraryItem(entry);
+const { Content } = await render(entry);
+const introductionHtml = await marked.parse(item.introduction);
+const hasReview = (entry.body?.trim().length ?? 0) > 0;
+const categoryPath = { movie: 'movies', manga: 'manga', game: 'games' }[item.category];
+const categoryName = { movie: '影视', manga: '漫画', game: '游戏' }[item.category];
+const releaseDate = item.releaseDate;
+const releaseYear = getReleaseYear(releaseDate);
+const gallery = item.images.gallery ?? [];
+const gallerySlots: Array<{ src: string; caption?: string }> = [...gallery];
+while (gallerySlots.length < 3) gallerySlots.push({ src: '', caption: `展示图 ${gallerySlots.length + 1}` });
+---
+
+<Layout title={item.title} description={item.summary} active={item.category}>
+  <a class="back-link" href={categoryPath}>← 返回{categoryName}收藏</a>
+  <section class="detail-hero">
+    <div class="detail-hero__visual"><Placeholder variant="hero" label={item.title} src={item.images.banner} /></div>
+    <div class="detail-hero__shade"></div>
+    <div class="detail-hero__copy">
+      <p>{releaseYear}　·　{item.meta}</p>
+      <h1>{item.title}</h1>
+      {item.originalTitle && <p class="original">{item.originalTitle}</p>}
+    </div>
+  </section>
+
+  <div class="detail-grid">
+    <div class="detail-main">
+      <section>
+        <h2>简介</h2>
+        <div class="markdown-panel" set:html={introductionHtml}></div>
+      </section>
+      {hasReview && (
+        <section>
+          <h2>短评</h2>
+          <div class="markdown-panel"><Content /></div>
+        </section>
+      )}
+      <section>
+        <h2>展示图</h2>
+        <div class="moments">
+          {gallerySlots.map((image) => (
+            <figure><Placeholder variant="landscape" label={image.caption ?? '作品展示图'} src={image.src || undefined} />{image.src && image.caption && <figcaption>{image.caption}</figcaption>}</figure>
+          ))}
+        </div>
+      </section>
+    </div>
+    <aside class="detail-side">
+      <div class="fact-panel">
+        <dl>
+          <div><dt>记录日期</dt><dd>{item.date}</dd></div>
+          <div><dt>作品日期</dt><dd>{releaseDate}</dd></div>
+        </dl>
+      </div>
+      <h2>标签</h2>
+      <div class="keyword-list">{item.tags.map((tag) => <a href={`tags?tag=${encodeURIComponent(tag)}`}>{tag}</a>)}</div>
+    </aside>
+  </div>
+</Layout>
+
+<style>
+  .back-link { display: inline-block; margin: 5px 0 15px; color: var(--muted); font-size: 12px; }
+  .detail-hero { position: relative; min-height: 340px; overflow: hidden; border-radius: 7px; background: #172033; }
+  .detail-hero__visual { position: absolute; inset: 0; overflow: hidden; opacity: .9; }
+  .detail-hero__shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(12, 22, 42, .82), rgba(12, 22, 42, .08)); }
+  .detail-hero__copy { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; min-height: 340px; padding: 40px; color: #fff; }
+  .detail-hero__copy > p { margin: 0 0 10px; opacity: .8; }
+  .detail-hero h1 { margin: 0 0 5px; font-size: clamp(32px, 4vw, 48px); font-weight: 550; }
+  .detail-hero .original { font-size: 13px; }
+  .detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 270px; align-items: start; gap: 34px; margin-top: 25px; }
+  h2 { font-size: 19px; font-weight: 550; margin: 0 0 10px; }
+  .detail-main { min-width: 0; }
+  .detail-main section { min-width: 0; margin-bottom: 26px; }
+  .markdown-panel, .fact-panel { border: 1px solid var(--line); border-radius: 5px; background: var(--soft); padding: 20px 22px; }
+  .markdown-panel { color: var(--ink-soft); line-height: 1.95; }
+  .markdown-panel :global(> :first-child) { margin-top: 0; }
+  .markdown-panel :global(> :last-child) { margin-bottom: 0; }
+  .markdown-panel :global(h2), .markdown-panel :global(h3) { color: var(--ink); }
+  .markdown-panel :global(p) { margin: 0 0 1em; }
+  .markdown-panel :global(ul), .markdown-panel :global(ol) { margin: 0 0 1em; padding-left: 1.5em; }
+  .markdown-panel :global(blockquote) { margin: 1em 0; padding: 10px 15px; border-left: 3px solid var(--line-strong); color: var(--ink-soft); }
+  .markdown-panel :global(blockquote > :last-child) { margin-bottom: 0; }
+  .markdown-panel :global(a) { color: var(--accent-strong); text-decoration: underline; }
+  .moments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 16px; }
+  .moments figure { min-width: 0; margin: 0; }
+  .moments figcaption { margin-top: 5px; color: var(--muted); font-size: 10px; }
+  .fact-panel dl { margin: 0; }
+  .fact-panel dl div { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .fact-panel dl div:last-child { border: 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; }
+  .detail-side { min-width: 0; padding-top: 38px; }
+  .detail-side h2 { margin-top: 24px; }
+  .keyword-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .keyword-list a { border: 1px solid var(--line-strong); padding: 5px 12px; border-radius: 20px; color: var(--muted); }
+  .keyword-list a:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); }
+  @media (max-width: 850px) { .detail-grid { grid-template-columns: 1fr; gap: 4px; } .detail-side { margin-bottom: 20px; padding-top: 0; } }
+  @media (max-width: 520px) { .detail-hero, .detail-hero__copy { min-height: 300px; } .detail-hero__copy { padding: 25px; } .moments { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>

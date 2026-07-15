@@ -1,0 +1,15 @@
+---
+interface Props {
+  name: 'site' | 'menu' | 'search' | 'collection' | 'movie' | 'manga' | 'game' | 'tag' | 'theme' | 'moon' | 'atmosphere' | 'grid' | 'list' | 'close' | 'quote';
+  size?: number;
+  label?: string;
+}
+const { name, size = 18, label } = Astro.props;
+---
+
+<img class="site-icon" src={`icons/${name}.svg`} width={size} height={size} alt={label ?? ''} aria-hidden={label ? undefined : 'true'} />
+
+<style>
+  .site-icon { display: block; flex: 0 0 auto; width: var(--icon-size, auto); max-width: none; object-fit: contain; vertical-align: middle; filter: none; }
+  :global(html.dark) .site-icon { filter: invert(1); }
+</style>

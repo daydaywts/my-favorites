@@ -1,0 +1,70 @@
+---
+interface Props {
+  tags?: string[];
+  showAnimeToggle?: boolean;
+}
+import Icon from './Icon.astro';
+const { tags = [], showAnimeToggle = false } = Astro.props;
+---
+
+<div class="filterbar">
+  <label class="filterbar__search">
+    <Icon name="search" size={17} label="搜索" />
+    <input type="search" placeholder="输入标题或标签…" data-page-search />
+  </label>
+
+  {showAnimeToggle && (
+    <button type="button" class="anime-toggle active" aria-pressed="true" data-anime-toggle>
+      <span>二次元</span><i aria-hidden="true"></i>
+    </button>
+  )}
+
+  <details class="filter-menu" data-filter-menu>
+    <summary><span data-tag-label>全部标签</span><i></i></summary>
+    <div class="filter-menu__panel">
+      <button type="button" class="active" data-tag-option="全部">全部标签</button>
+      {tags.map((tag) => <button type="button" data-tag-option={tag}>{tag}</button>)}
+    </div>
+  </details>
+
+  <details class="filter-menu" data-filter-menu>
+    <summary><span data-release-sort-label>作品日期：从新到旧</span><i></i></summary>
+    <div class="filter-menu__panel">
+      <button type="button" class="active" data-release-sort="desc">作品日期：从新到旧</button>
+      <button type="button" data-release-sort="asc">作品日期：从旧到新</button>
+    </div>
+  </details>
+</div>
+
+<style>
+  .filterbar { position: relative; z-index: 5; display: flex; width: 100%; align-items: center; gap: 10px; padding: 0 0 18px; }
+  .filterbar__search { display: flex; align-items: center; gap: 9px; min-width: 230px; margin-right: auto; border-bottom: 1px solid var(--line-strong); padding: 7px 2px; color: var(--muted); }
+  input { flex: 1; min-width: 0; width: 160px; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; font-size: 12px; }
+  .anime-toggle { display: flex; min-height: 36px; align-items: center; gap: 11px; padding: 7px 10px 7px 13px; border: 1px solid var(--line); border-radius: 5px; background: var(--paper); color: var(--ink-soft); font: inherit; font-size: 11px; cursor: pointer; transition: border-color .18s, background .18s, color .18s; }
+  .anime-toggle:hover { border-color: var(--line-strong); }
+  .anime-toggle i { position: relative; width: 27px; height: 16px; border: 1px solid var(--line-strong); border-radius: 20px; background: var(--soft-2); transition: border-color .18s, background .18s; }
+  .anime-toggle i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); transition: left .18s, background .18s; }
+  .anime-toggle.active i { border-color: var(--accent); background: var(--accent); }
+  .anime-toggle.active i::after { left: 13px; background: var(--paper); }
+  .filter-menu { position: relative; min-width: 145px; font-size: 11px; }
+  .filter-menu summary { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 36px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 5px; background: var(--paper); color: var(--ink-soft); list-style: none; cursor: pointer; user-select: none; transition: border-color .18s, background .18s, color .18s; }
+  .filter-menu summary::-webkit-details-marker { display: none; }
+  .filter-menu summary:hover, .filter-menu[open] summary { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); }
+  .filter-menu summary i { width: 6px; height: 6px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform .18s; }
+  .filter-menu[open] summary i { transform: rotate(225deg) translate(-1px, -1px); }
+  .filter-menu__panel { position: absolute; right: 0; top: calc(100% + 7px); z-index: 10; width: 190px; max-height: 300px; overflow-y: auto; padding: 7px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--paper); box-shadow: 0 16px 38px rgba(0, 0, 0, .12); animation: menu-in .16s ease-out; }
+  .filter-menu__panel button { display: flex; width: 100%; border: 0; border-radius: 4px; padding: 9px 10px; background: transparent; color: var(--ink-soft); text-align: left; font: inherit; cursor: pointer; transition: background .16s, color .16s; }
+  .filter-menu__panel button[hidden] { display: none; }
+  .filter-menu__panel button:hover, .filter-menu__panel button.active { background: var(--accent-soft); color: var(--accent-strong); }
+  .filter-menu__panel button.active::after { content: '✓'; margin-left: auto; }
+  @keyframes menu-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+  @media (max-width: 620px) {
+    .filterbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+    .filterbar__search { grid-column: 1 / -1; width: 100%; min-width: 0; margin-right: 0; }
+    .anime-toggle, .filter-menu { width: 100%; min-width: 0; }
+    .filterbar > :last-child:nth-child(even) { grid-column: 1 / -1; }
+    .anime-toggle { justify-content: space-between; }
+    .filter-menu summary { height: 100%; }
+    .filter-menu__panel { left: 0; right: auto; width: 100%; min-width: 0; }
+  }
+</style>

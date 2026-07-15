@@ -1,0 +1,74 @@
+---
+import '../styles/global.css';
+import '@fontsource-variable/noto-sans-sc/wght.css';
+import Header from '../components/Header.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Icon from '../components/Icon.astro';
+import { getLibrary, getReleaseYear } from '../data/library';
+import { site } from '../data/site';
+import { getCollection } from 'astro:content';
+
+interface Props {
+  title?: string;
+  description?: string;
+  active?: string;
+}
+const { title = site.title, description = site.subtitle, active = 'home' } = Astro.props;
+const fullTitle = title === site.title ? title : `${title}｜${site.title}`;
+const library = await getLibrary();
+const articles = (await getCollection('articles')).sort((a, b) => b.data.date.localeCompare(a.data.date));
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <base href={`${import.meta.env.BASE_URL.replace(/\/?$/, '/')}`} />
+    <link rel="icon" type="image/svg+xml" href="icons/site.svg" />
+    <title>{fullTitle}</title>
+    <script is:inline>
+      if (localStorage.getItem('favorites-theme') === 'dark') document.documentElement.classList.add('dark');
+    </script>
+  </head>
+  <body>
+    <Sidebar active={active} />
+    <main class="app-main">
+      <div class="main-inner">
+        <Header active={active} />
+        <slot />
+      </div>
+    </main>
+
+    <dialog class="search-dialog" data-search-dialog>
+      <div class="search-dialog__head">
+        <Icon name="search" size={22} />
+        <input type="search" placeholder="搜索作品、文章或标签…" aria-label="搜索收藏" data-global-search />
+        <button type="button" aria-label="关闭搜索" data-search-close><Icon name="close" size={22} /></button>
+      </div>
+      <div class="search-results" data-search-results aria-hidden="true">
+        <p class="search-group-title">收藏作品</p>
+        {library.map((item) => (
+          <a class="search-result" href={`item/${item.slug}`} data-search-item data-text={`${item.title} ${item.originalTitle ?? ''} ${item.meta} ${item.tags.join(' ')}`.toLowerCase()}>
+            <span>{item.title}</span>
+            <small>{getReleaseYear(item.releaseDate)} · {item.meta}</small>
+            <b>{item.date}</b>
+          </a>
+        ))}
+        <p class="search-group-title">我的文章</p>
+        {articles.map((article) => (
+          <a class="search-result" href={`notes/${article.id}`} data-search-item data-text={`${article.data.title} ${article.data.summary} ${article.data.tags.join(' ')}`.toLowerCase()}>
+            <span>{article.data.title}</span>
+            <small>{article.data.date} · {article.data.tags.join(' / ')}</small>
+            <b>文章</b>
+          </a>
+        ))}
+        <p class="search-empty" data-search-empty hidden>没有找到匹配的收藏。</p>
+      </div>
+    </dialog>
+
+    <script is:inline src={`${import.meta.env.BASE_URL.replace(/\/?$/, '/')}site.js`} defer></script>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+---
+import CollectionPage from '../../components/CollectionPage.astro';
+import { getByCategory } from '../../data/library';
+import { pageDescriptions } from '../../data/site';
+const items = await getByCategory('movie');
+---
+<CollectionPage title="影视收藏" intro={pageDescriptions.movies} category="movie" items={items} />

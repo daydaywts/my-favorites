@@ -1,0 +1,44 @@
+---
+import Layout from '../layouts/Layout.astro';
+import MediaCard from '../components/MediaCard.astro';
+import { getLibraryMeta } from '../data/library';
+import { pageDescriptions } from '../data/site';
+const { allTags, library, tagCounts } = await getLibraryMeta();
+---
+
+<Layout title="标签筛选" description={pageDescriptions.tags} active="tags">
+  <section class="tag-head">
+    <div class="tag-head__copy">
+      <h1>标签筛选</h1>
+      <p>{pageDescriptions.tags}</p>
+    </div>
+  </section>
+  <section class="tag-cloud" aria-label="全部标签">
+    <button type="button" class="active" data-tag-chip="全部">全部 <small>{library.length}</small></button>
+    {allTags.map((tag) => <button type="button" data-tag-chip={tag}>{tag} <small>{tagCounts[tag]}</small></button>)}
+  </section>
+
+  <div class="section-heading"><h2>收藏作品</h2><span>共 {library.length} 个作品</span></div>
+  <section class="tag-grid" data-library-grid>
+    {library.map((item) => <MediaCard item={item} />)}
+  </section>
+  <div class="empty-state" data-empty-state>没有找到包含这个标签的作品。</div>
+</Layout>
+
+<style>
+  .tag-head { display: flex; width: 100%; align-items: flex-end; justify-content: space-between; gap: 30px; padding: 26px 0 30px; border-bottom: 1px solid var(--line); }
+  .tag-head__copy { min-width: 0; }
+  .tag-head h1 { margin: 0 0 9px; font-size: 34px; font-weight: 600; }
+  .tag-head p { margin: 0; color: var(--muted); line-height: 1.8; }
+  .tag-cloud { display: flex; flex-wrap: wrap; gap: 9px; padding: 22px 0 4px; }
+  .tag-cloud button { border: 1px solid var(--line-strong); border-radius: 20px; padding: 7px 13px; background: var(--paper); color: var(--ink-soft); font: inherit; font-size: 12px; cursor: pointer; }
+  .tag-cloud button:hover, .tag-cloud button.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .tag-cloud small { margin-left: 4px; opacity: .65; }
+  .section-heading > span { color: var(--muted); font-size: 11px; }
+  .tag-grid { display: grid; width: 100%; grid-template-columns: repeat(7, minmax(0, 159px)); justify-content: space-between; gap: 16px; }
+  @media (max-width: 1500px) { .tag-grid { grid-template-columns: repeat(6, minmax(0, 159px)); } }
+  @media (max-width: 1280px) { .tag-grid { grid-template-columns: repeat(5, minmax(0, 159px)); } }
+  @media (max-width: 1100px) { .tag-grid { grid-template-columns: repeat(4, minmax(0, 159px)); } }
+  @media (max-width: 880px) { .tag-grid { grid-template-columns: repeat(3, minmax(0, 159px)); } }
+  @media (max-width: 520px) { .tag-grid { grid-template-columns: repeat(2, minmax(0, 159px)); gap: 14px; } }
+</style>

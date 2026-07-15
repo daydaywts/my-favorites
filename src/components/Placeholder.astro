@@ -1,0 +1,38 @@
+---
+interface Props {
+  label?: string;
+  variant?: 'portrait' | 'landscape' | 'hero' | 'avatar';
+  src?: string;
+}
+
+const { label = '图片待添加', variant = 'portrait', src } = Astro.props;
+---
+
+<div class:list={['placeholder', `placeholder--${variant}`, { 'has-image': src }]}>
+  {src ? <img class="placeholder__image" src={src} alt={label} loading="lazy" /> : (
+    <div class="placeholder__art" aria-label={label}>
+      <span class="placeholder__sun"></span>
+      <span class="placeholder__mountain placeholder__mountain--back"></span>
+      <span class="placeholder__mountain placeholder__mountain--front"></span>
+      <span class="placeholder__person"></span>
+      <small>{label}</small>
+    </div>
+  )}
+</div>
+
+<style>
+  .placeholder { position: relative; min-width: 0; overflow: hidden; background: #f4f4f2; border: 1px solid var(--line); }
+  .placeholder--portrait { aspect-ratio: 2 / 3; }
+  .placeholder--landscape { aspect-ratio: 16 / 9; }
+  .placeholder--hero { width: 100%; height: 100%; min-height: 270px; border: 0; }
+  .placeholder--avatar { width: 172px; aspect-ratio: 1; border-radius: 50%; }
+  :global(.placeholder__image) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .placeholder__art { position: absolute; inset: 0; background: linear-gradient(180deg, #fafafa 0 48%, #e9e9e6 48%); }
+  .placeholder__sun { position: absolute; width: 28%; aspect-ratio: 1; border: 1px solid #aaa; background: #ecece9; border-radius: 50%; left: 55%; top: 14%; transform: translateX(-50%); }
+  .placeholder__mountain { position: absolute; width: 80%; height: 45%; left: -8%; bottom: -10%; background: #d7d7d3; transform: skewX(-24deg) rotate(-7deg); }
+  .placeholder__mountain--front { left: 33%; bottom: -18%; background: #bcbcb7; transform: skewX(25deg) rotate(8deg); }
+  .placeholder__person { position: absolute; left: 58%; bottom: 19%; width: 5px; height: 18px; background: #222; border-radius: 50% 50% 1px 1px; z-index: 2; }
+  .placeholder__person::before { content: ''; position: absolute; width: 6px; height: 6px; border: 1px solid #222; border-radius: 50%; top: -7px; left: -1.5px; background: #eee; }
+  small { position: absolute; left: 12px; bottom: 10px; z-index: 3; color: #555; font-size: 10px; letter-spacing: .12em; opacity: .65; }
+  @media (max-width: 720px) { .placeholder--hero { min-height: 210px; } }
+</style>

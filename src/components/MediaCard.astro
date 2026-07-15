@@ -1,0 +1,23 @@
+---
+import type { LibraryItem } from '../types';
+import { getReleaseYear } from '../data/library';
+import Placeholder from './Placeholder.astro';
+
+interface Props { item: LibraryItem; }
+const { item } = Astro.props;
+const searchText = [item.title, item.originalTitle, item.meta, ...item.tags].filter(Boolean).join(' ').toLowerCase();
+const releaseYear = getReleaseYear(item.releaseDate);
+---
+
+<article class="media-card" data-library-card data-search={searchText} data-tags={item.tags.join('|')} data-date={item.date} data-release-date={item.releaseDate}>
+  <a href={`item/${item.slug}`} aria-label={`查看 ${item.title}`} title={`${item.title}（${releaseYear}）`}>
+    <Placeholder src={item.images.cover} label={item.title} variant="portrait" />
+  </a>
+</article>
+
+<style>
+  .media-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); box-shadow: 0 5px 18px rgba(44, 62, 88, .05); transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease; }
+  .media-card:hover { transform: translateY(-4px); border-color: var(--line-strong); box-shadow: 0 13px 30px rgba(0, 0, 0, .1); }
+  a { display: block; color: inherit; }
+  a:focus, a:focus-visible { outline: none; }
+</style>

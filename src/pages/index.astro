@@ -1,0 +1,85 @@
+---
+import Layout from '../layouts/Layout.astro';
+import MediaCard from '../components/MediaCard.astro';
+import Placeholder from '../components/Placeholder.astro';
+import { getLibrary, getReleaseYear } from '../data/library';
+import { annualRecommendations, homeCollections } from '../data/home';
+import type { LibraryItem } from '../types';
+
+const library = await getLibrary();
+const bySlug = new Map(library.map((item) => [item.slug, item]));
+const selectItems = (slugs: string[]) => slugs.map((slug) => bySlug.get(slug)).filter((item): item is LibraryItem => Boolean(item));
+const recommendations = selectItems(annualRecommendations).slice(0, 5);
+const movies = selectItems(homeCollections.movie);
+const manga = selectItems(homeCollections.manga);
+const games = selectItems(homeCollections.game);
+---
+
+<Layout active="home">
+  <section>
+    <div class="section-heading section-heading--first"><h2>年度推荐</h2></div>
+    <div class="recommendation" data-recommendation aria-label="年度推荐">
+      {recommendations.map((item, index) => (
+        <a class:list={['recommendation__slide', { active: index === 0 }]} href={`item/${item.slug}`} data-recommendation-slide aria-hidden={index === 0 ? 'false' : 'true'} aria-label={`查看年度推荐：${item.title}`}>
+          <Placeholder variant="hero" label={`${item.title} Banner`} src={item.images.banner} />
+        </a>
+      ))}
+      <div class="recommendation__bar">
+        <div class="recommendation__details">
+          {recommendations.map((item, index) => (
+            <div class:list={['recommendation__info', { active: index === 0 }]} data-recommendation-info aria-hidden={index === 0 ? 'false' : 'true'}>
+              <strong>{item.title}</strong>
+              <i></i>
+              <span class="recommendation__meta">{getReleaseYear(item.releaseDate)}</span>
+              <i></i>
+              <span class="recommendation__summary">{item.summary}</span>
+            </div>
+          ))}
+        </div>
+        <div class="recommendation__dots" aria-label="选择年度推荐内容">
+          {recommendations.map((item, index) => <button type="button" class:list={{ active: index === 0 }} data-recommendation-dot data-index={index} aria-label={`查看推荐：${item.title}`}></button>)}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-heading"><h2>喜欢的影视</h2><a href="movies">查看全部　→</a></div>
+    <div class="cover-grid home-row">{movies.map((item) => <MediaCard item={item} />)}</div>
+  </section>
+  <section>
+    <div class="section-heading"><h2>喜欢的游戏</h2><a href="games">查看全部　→</a></div>
+    <div class="cover-grid home-row">{games.map((item) => <MediaCard item={item} />)}</div>
+  </section>
+  <section>
+    <div class="section-heading"><h2>喜欢的漫画</h2><a href="manga">查看全部　→</a></div>
+    <div class="cover-grid home-row">{manga.map((item) => <MediaCard item={item} />)}</div>
+  </section>
+</Layout>
+
+<style>
+  .section-heading--first { margin-top: 2px; }
+  .recommendation { position: relative; width: 100%; height: clamp(220px, 22vw, 285px); overflow: hidden; border: 1px solid var(--line); border-radius: 5px; background: var(--soft); box-shadow: 0 7px 24px rgba(0, 0, 0, .06); }
+  .recommendation__slide { position: absolute; inset: 0; display: block; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .55s ease, visibility .55s ease; }
+  .recommendation__slide.active { opacity: 1; visibility: visible; pointer-events: auto; }
+  .recommendation__slide:focus, .recommendation__slide:focus-visible { outline: none; }
+  .recommendation__slide :global(.placeholder) { height: 100%; }
+  .recommendation__bar { position: absolute; z-index: 6; left: 20px; bottom: 17px; display: flex; align-items: center; gap: 10px; width: min(480px, calc(100% - 40px)); min-height: 38px; padding: 6px 10px 6px 14px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .2); border-radius: 6px; background: rgba(16, 16, 16, .52); color: #f7f7f5; box-shadow: 0 5px 17px rgba(0, 0, 0, .18); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  .recommendation__details { min-width: 0; flex: 1; }
+  .recommendation__info { display: none; min-width: 0; align-items: center; gap: 9px; }
+  .recommendation__info.active { display: flex; }
+  .recommendation__info strong { display: flex; flex: 0 0 auto; align-items: center; max-width: 150px; min-height: 16px; overflow: hidden; font-size: 13px; font-weight: 550; line-height: 1; text-overflow: ellipsis; white-space: nowrap; }
+  .recommendation__info > i { flex: 0 0 1px; width: 1px; height: 16px; background: rgba(255, 255, 255, .24); }
+  .recommendation__meta { display: flex; flex: 0 0 auto; align-items: center; min-height: 16px; color: rgba(255, 255, 255, .78); font-size: 11px; line-height: 1; white-space: nowrap; }
+  .recommendation__summary { min-width: 0; overflow: hidden; color: rgba(255, 255, 255, .82); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+  .recommendation__dots { display: flex; flex: 0 0 auto; align-items: center; gap: 5px; }
+  .recommendation__dots button { width: 6px; height: 6px; padding: 0; border: 1px solid rgba(255, 255, 255, .8); border-radius: 50%; background: transparent; cursor: pointer; transition: background .2s, transform .2s; }
+  .recommendation__dots button:hover { transform: scale(1.2); }
+  .recommendation__dots button.active { background: #f7f7f5; }
+  .cover-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 194px)); justify-content: space-between; gap: 16px; }
+  @media (max-width: 1500px) { .cover-grid { grid-template-columns: repeat(5, minmax(0, 194px)); } }
+  @media (max-width: 1180px) { .cover-grid { grid-template-columns: repeat(4, minmax(0, 194px)); } }
+  @media (max-width: 900px) { .cover-grid { grid-template-columns: repeat(3, minmax(0, 189px)); } }
+  @media (max-width: 700px) { .recommendation__summary, .recommendation__info > i:last-of-type { display: none; } }
+  @media (max-width: 560px) { .recommendation { height: 210px; } .recommendation__bar { left: 12px; bottom: 12px; width: min(430px, calc(100% - 24px)); gap: 10px; } .recommendation__details { min-width: 0; } .recommendation__info.active { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; } .recommendation__info strong { min-width: 0; max-width: none; } .recommendation__meta { display: flex !important; visibility: visible; opacity: 1; } .recommendation__summary, .recommendation__info > i { display: none; } .cover-grid { grid-template-columns: repeat(2, minmax(0, 179px)); gap: 14px; } }
+</style>

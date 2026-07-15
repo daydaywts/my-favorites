@@ -1,0 +1,79 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Placeholder from '../components/Placeholder.astro';
+import MediaCard from '../components/MediaCard.astro';
+import { getCollection } from 'astro:content';
+import { stat } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { getLibraryMeta, toLibraryItem } from '../data/library';
+import { site } from '../data/site';
+const { counts } = await getLibraryMeta();
+const workEntries = await getCollection('works');
+const recentWithCreatedAt = await Promise.all(workEntries.map(async (entry) => {
+  const item = toLibraryItem(entry);
+  let createdAt = 0;
+  let modifiedAt = 0;
+  if (entry.filePath) {
+    try {
+      const fileInfo = await stat(resolve(entry.filePath));
+      createdAt = fileInfo.birthtimeMs || fileInfo.ctimeMs;
+      modifiedAt = fileInfo.mtimeMs;
+    } catch {
+      // 部署环境无法读取文件时间时，使用作品记录日期作为后备顺序。
+    }
+  }
+  return { item, createdAt, modifiedAt };
+}));
+const recent = recentWithCreatedAt
+  .sort((a, b) => b.createdAt - a.createdAt || b.modifiedAt - a.modifiedAt || b.item.date.localeCompare(a.item.date))
+  .slice(0, 6)
+  .map(({ item }) => item);
+---
+
+<Layout title="关于我" active="about">
+  <section class="profile">
+    <div class="profile__avatar">
+      <Placeholder variant="avatar" label="个人头像" src={site.avatar || undefined} />
+    </div>
+    <div class="profile__copy">
+      <h1>{site.owner}</h1>
+      <p>{site.bio}</p>
+    </div>
+  </section>
+
+  <section class="statistics">
+    <div class="section-heading"><h2>收藏统计</h2></div>
+    <div class="stats">
+      <div><span>全部收藏</span><b>{counts.all}</b><small>个作品</small></div>
+      <div><span>影视</span><b>{counts.movie}</b><small>部</small></div>
+      <div><span>漫画</span><b>{counts.manga}</b><small>部</small></div>
+      <div><span>游戏</span><b>{counts.game}</b><small>款</small></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-heading"><h2>最近更新</h2><a href="./">返回首页　→</a></div>
+    <div class="recent-grid">{recent.map((item) => <MediaCard item={item} />)}</div>
+  </section>
+</Layout>
+
+<style>
+  .profile { display: grid; grid-template-columns: 220px minmax(0, 1fr); align-items: center; gap: clamp(42px, 6vw, 86px); min-height: 320px; padding: 48px clamp(38px, 6vw, 76px); border: 1px solid var(--line); border-radius: 6px; background: linear-gradient(140deg, var(--paper), var(--soft)); }
+  .profile__avatar { display: grid; place-items: center; }
+  .profile__avatar :global(.placeholder--avatar) { width: 200px; }
+  .profile__copy { min-width: 0; }
+  .profile__copy h1 { margin: 0 0 18px; font-size: 36px; font-weight: 600; letter-spacing: .02em; }
+  .profile__copy p { max-width: 860px; margin: 0; color: var(--ink-soft); font-size: 16px; line-height: 2.1; }
+  .statistics { margin-top: 4px; }
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .stats div { min-width: 0; padding: 21px 12px; border: 1px solid var(--line); background: var(--soft); text-align: center; }
+  .stats span { display: block; font-weight: 500; }
+  .stats b { display: block; margin-top: 8px; font-size: 27px; font-weight: 500; }
+  .stats small { display: block; margin-top: 6px; color: var(--muted); }
+  .recent-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 194px)); justify-content: space-between; gap: 16px; }
+  @media (max-width: 1500px) { .recent-grid { grid-template-columns: repeat(5, minmax(0, 194px)); } }
+  @media (max-width: 1180px) { .recent-grid { grid-template-columns: repeat(4, minmax(0, 194px)); } }
+  @media (max-width: 900px) { .recent-grid { grid-template-columns: repeat(3, minmax(0, 189px)); } }
+  @media (max-width: 700px) { .profile { grid-template-columns: 1fr; gap: 28px; padding: 38px 24px; text-align: center; } .profile__avatar :global(.placeholder--avatar) { width: 180px; } .profile__copy h1 { font-size: 32px; } .profile__copy p { margin-inline: auto; font-size: 15px; } .stats { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .recent-grid { grid-template-columns: repeat(2, minmax(0, 179px)); gap: 14px; } }
+</style>

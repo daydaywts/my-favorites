@@ -1,0 +1,71 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { pageDescriptions } from '../../data/site';
+const articles = (await getCollection('articles')).sort((a, b) => b.data.date.localeCompare(a.data.date));
+---
+
+<Layout title="我的文章" description={pageDescriptions.notes} active="notes">
+  <section class="notes-head">
+    <div class="notes-head__copy">
+      <h1>我的文章</h1>
+      <span>{pageDescriptions.notes}</span>
+    </div>
+    <div class="notes-tools">
+    <details class="filter-menu" data-filter-menu>
+      <summary><span data-article-sort-label>文章时间：从新到旧</span><i></i></summary>
+      <div class="filter-menu__panel">
+        <button type="button" class="active" data-article-sort="desc">文章时间：从新到旧</button>
+        <button type="button" data-article-sort="asc">文章时间：从旧到新</button>
+      </div>
+    </details>
+    </div>
+  </section>
+  <section class="notes-list" data-article-list>
+    {articles.map((article) => (
+      <article data-article-card data-date={article.data.date}>
+        <a href={`notes/${article.id}`}>
+          <div>
+            <p>{article.data.date}　·　{article.data.tags.join(' / ')}</p>
+            <h2>{article.data.title}</h2>
+            <span>{article.data.summary}</span>
+          </div>
+          <b>阅读文章　→</b>
+        </a>
+      </article>
+    ))}
+  </section>
+</Layout>
+
+<style>
+  .notes-head { display: flex; width: 100%; align-items: flex-end; justify-content: space-between; gap: 30px; padding: 26px 0 30px; border-bottom: 1px solid var(--line); }
+  .notes-head__copy { min-width: 0; }
+  .notes-head h1 { margin: 0 0 9px; font-size: 34px; font-weight: 600; }
+  .notes-head span { color: var(--muted); }
+  .notes-tools { display: flex; flex: 0 0 auto; justify-content: flex-end; }
+  .filter-menu { position: relative; z-index: 5; min-width: 174px; font-size: 11px; }
+  .filter-menu summary { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 36px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 5px; background: var(--paper); color: var(--ink-soft); list-style: none; cursor: pointer; user-select: none; transition: border-color .18s, background .18s, color .18s; }
+  .filter-menu summary::-webkit-details-marker { display: none; }
+  .filter-menu summary:hover, .filter-menu[open] summary { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); }
+  .filter-menu summary i { width: 6px; height: 6px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform .18s; }
+  .filter-menu[open] summary i { transform: rotate(225deg) translate(-1px, -1px); }
+  .filter-menu__panel { position: absolute; right: 0; top: calc(100% + 7px); z-index: 10; width: 210px; padding: 7px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--paper); box-shadow: 0 16px 38px rgba(0, 0, 0, .12); animation: menu-in .16s ease-out; }
+  .filter-menu__panel button { display: flex; width: 100%; border: 0; border-radius: 4px; padding: 9px 10px; background: transparent; color: var(--ink-soft); text-align: left; font: inherit; cursor: pointer; transition: background .16s, color .16s; }
+  .filter-menu__panel button:hover, .filter-menu__panel button.active { background: var(--accent-soft); color: var(--accent-strong); }
+  .filter-menu__panel button.active::after { content: '✓'; margin-left: auto; }
+  @keyframes menu-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+  .notes-list { width: 100%; }
+  .notes-list article { position: relative; border: 0; border-bottom: 1px solid var(--line); border-radius: 6px; background: var(--paper); transform: translate3d(0, 0, 0); transition: transform .22s ease; will-change: transform; }
+  .notes-list article::after { content: ''; position: absolute; pointer-events: none; inset: 0 -16px; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 12px 32px rgba(0, 0, 0, .1); opacity: 0; transition: opacity .22s ease; will-change: opacity; }
+  .notes-list article:hover, .notes-list article:focus-within { z-index: 1; transform: translate3d(0, -3px, 0); }
+  .notes-list article:hover::after, .notes-list article:focus-within::after { opacity: 1; }
+  .notes-list a { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 22px; padding: 27px 5px; color: var(--ink); }
+  .notes-list a:hover { background: transparent; }
+  .notes-list a:focus, .notes-list a:focus-visible { outline: none; }
+  .notes-list p { margin: 0 0 7px; color: var(--muted); font-size: 10px; }
+  .notes-list h2 { margin: 0 0 8px; font-size: 20px; font-weight: 550; }
+  .notes-list div > span { color: var(--ink-soft); line-height: 1.7; }
+  .notes-list b { color: var(--muted); font-size: 11px; font-weight: 400; }
+  @media (max-width: 700px) { .notes-head { align-items: stretch; flex-direction: column; } .notes-tools { justify-content: flex-start; } .filter-menu { width: 100%; } .filter-menu__panel { left: 0; right: auto; } }
+  @media (max-width: 600px) { .notes-list a { grid-template-columns: 1fr; } .notes-list b { display: none; } }
+</style>
