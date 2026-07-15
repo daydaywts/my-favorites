@@ -15,14 +15,14 @@ npm.cmd run dev
 
 ## 最常修改的文件
 
-| 想修改什么 | 文件位置 |
-| --- | --- |
-| 添加、删除或修改一部作品 | `src/content/works/movie`、`manga`、`game` |
-| 修改首页展示和年度推荐 | `src/data/home.ts` |
-| 修改网站名称、头像、简介、侧栏更新时间、各页面副标题 | `src/data/site.ts` |
-| 写文章 | `src/content/articles/*.md` |
-| 替换网站和页面图标 | `public/icons` |
-| 调整网站主题颜色 | `src/styles/global.css` |
+| 想修改什么                      | 文件位置                                     |
+| -------------------------- | ---------------------------------------- |
+| 添加、删除或修改一部作品               | `src/content/works/movie`、`manga`、`game` |
+| 修改首页展示和年度推荐                | `src/data/home.ts`                       |
+| 修改网站名称、头像、简介、侧栏更新时间、各页面副标题 | `src/data/site.ts`                       |
+| 写文章                        | `src/content/articles/*.md`              |
+| 替换网站和页面图标                  | `public/icons`                           |
+| 调整网站主题颜色                   | `src/styles/global.css`                  |
 
 ## 一部作品对应一个 Markdown 文件
 
@@ -170,3 +170,18 @@ npm.cmd run preview
 5. 等待 Actions 中的部署任务完成。
 
 以后每次向 `main` 分支推送修改，网站都会自动更新。
+
+
+
+结论：项目源码可以迁移，但不能保证复制到任意电脑后“零设置直接开发”。我没有修改任何文件。
+
+需要注意：
+
+- `node_modules` 占约 191 MB，包含 Windows x64 专用组件。换电脑后建议运行 `npm ci` 重新安装，不要依赖直接复制。
+- 新电脑需要安装 Node.js 22.12 或更高版本以及 Git。
+- 推送 GitHub 前，需要在新电脑重新登录：`gh auth login`。登录凭据不会随文件夹复制。
+- 当前发布工具尚未提交到 Git。如果通过 U 盘复制整个文件夹，它会保留；如果重新从 GitHub 克隆，则不会包含发布工具。
+- `启动发布工具.cmd` 只能在 Windows 使用；macOS/Linux 可运行 `npm run deploy-tool`。
+- 项目中没有写死当前电脑的盘符、目录或用户名，`.git` 仓库和远程地址也完整。
+
+如果目标仍是另一台 Windows x64 电脑，复制整个文件夹后安装 Node、Git，再运行一次 `npm ci`，即可继续开发。

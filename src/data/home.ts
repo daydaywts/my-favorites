@@ -11,7 +11,7 @@ export const homeCollections = {
 
 /** 年度推荐按照这里的顺序轮播，建议保持 5 项。 */
 export const annualRecommendations = [
-  'interstellar',
+  'gun-woman',
   'star-sea',
   'elden-ring',
   'spirited-away',
